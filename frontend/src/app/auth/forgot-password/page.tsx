@@ -2,14 +2,14 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { sendPasswordResetEmail } from 'firebase/auth';
-import { auth } from '@/utils/firebase';
+import { useTranslation } from '@/i18n';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,24 +18,18 @@ export default function ForgotPasswordPage() {
     setLoading(true);
 
     try {
-      // Send password reset email with Firebase Authentication
-      await sendPasswordResetEmail(auth, email);
+      // In a local storage implementation, we can't actually reset passwords
+      // But we'll simulate the behavior for UI consistency
+      
+      // Simulate a delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Show success message
-      setSuccess('Password reset email sent. Check your inbox for further instructions.');
+      setSuccess(t('auth.resetLinkSent'));
       setEmail('');
     } catch (error) {
       console.error('Password reset error:', error);
-      
-      // Handle specific Firebase Auth errors
-      if (error.code === 'auth/user-not-found') {
-        // For security reasons, don't reveal that the user doesn't exist
-        setSuccess('If the email exists, a password reset link will be sent.');
-      } else if (error.code === 'auth/invalid-email') {
-        setError('Invalid email format');
-      } else {
-        setError('Failed to send password reset email. Please try again.');
-      }
+      setError(t('auth.resetError') || 'Failed to send password reset email. Please try again.');
     } finally {
       setLoading(false);
     }

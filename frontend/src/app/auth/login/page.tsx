@@ -3,8 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '@/utils/firebase';
+import { loginUser } from '@/utils/localStorage';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -19,28 +18,19 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      // Sign in with Firebase Authentication
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      
-      // Get the user's ID token
-      const token = await userCredential.user.getIdToken();
-      
-      // Store the token in localStorage
-      localStorage.setItem('auth_token', token);
-      localStorage.setItem('user_id', userCredential.user.uid);
+      // Sign in with local storage
+      const user = await loginUser(email, password);
       
       // Redirect to the chat page
       router.push('/chat');
     } catch (error) {
       console.error('Login error:', error);
       
-      // Handle specific Firebase Auth errors
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+      // Handle errors
+      if (error.message === 'Invalid email or password') {
         setError('Invalid email or password');
-      } else if (error.code === 'auth/invalid-email') {
+      } else if (error.message.includes('email')) {
         setError('Invalid email format');
-      } else if (error.code === 'auth/user-disabled') {
-        setError('This account has been disabled');
       } else {
         setError('Failed to login. Please try again.');
       }

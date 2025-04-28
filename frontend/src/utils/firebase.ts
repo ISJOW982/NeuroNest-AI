@@ -1,26 +1,73 @@
 // Import the functions you need from the SDKs you need
-import { initializeApp, getApps } from 'firebase/app';
-import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, limit, doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from 'firebase/auth';
+import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
+import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, limit, doc, getDoc, updateDoc, deleteDoc, Firestore } from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject, FirebaseStorage } from 'firebase/storage';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, User, Auth } from 'firebase/auth';
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
-};
+// Mock implementations for when Firebase is not configured
+const mockAuth = {
+  currentUser: null,
+  onAuthStateChanged: (callback: (user: null) => void) => {
+    callback(null);
+    return () => {};
+  },
+  signInWithEmailAndPassword: () => Promise.reject(new Error('Firebase not configured')),
+  createUserWithEmailAndPassword: () => Promise.reject(new Error('Firebase not configured')),
+  signOut: () => Promise.resolve(),
+} as unknown as Auth;
 
-// Initialize Firebase only if it hasn't been initialized already
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
-const db = getFirestore(app);
-const storage = getStorage(app);
-const auth = getAuth(app);
+const mockFirestore = {
+  collection: () => ({
+    addDoc: () => Promise.resolve({ id: 'mock-id' }),
+    getDocs: () => Promise.resolve({ docs: [] }),
+  }),
+} as unknown as Firestore;
+
+const mockStorage = {} as FirebaseStorage;
+let app: FirebaseApp;
+let db: Firestore;
+let storage: FirebaseStorage;
+let auth: Auth;
+
+// Check if Firebase configuration is available
+const hasFirebaseConfig = 
+  process.env.NEXT_PUBLIC_FIREBASE_API_KEY && 
+  process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+
+try {
+  if (hasFirebaseConfig) {
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+      authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+      appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+      measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+    };
+
+    // Initialize Firebase only if it hasn't been initialized already
+    app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
+    db = getFirestore(app);
+    storage = getStorage(app);
+    auth = getAuth(app);
+    
+    console.log('Firebase initialized successfully');
+  } else {
+    console.warn('Firebase configuration not found. Using mock implementations.');
+    app = {} as FirebaseApp;
+    db = mockFirestore;
+    storage = mockStorage;
+    auth = mockAuth;
+  }
+} catch (error) {
+  console.error('Error initializing Firebase:', error);
+  app = {} as FirebaseApp;
+  db = mockFirestore;
+  storage = mockStorage;
+  auth = mockAuth;
+}
 
 // Conversation history functions
 export const saveConversation = async (userId: string, conversation: any) => {

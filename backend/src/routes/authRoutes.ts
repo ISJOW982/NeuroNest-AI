@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from 'express';
+import express from 'express';
 import { 
   register, 
   login, 
@@ -13,18 +13,14 @@ import { authMiddleware } from '../middleware/authMiddleware';
 const router = express.Router();
 
 // Public routes
-router.post('/register', (req: Request, res: Response) => register(req, res));
-router.post('/login', (req: Request, res: Response) => login(req, res));
-router.post('/forgot-password', (req: Request, res: Response) => forgotPassword(req, res));
+router.post('/register', register);
+router.post('/login', login);
+router.post('/forgot-password', forgotPassword);
 
 // Protected routes (require authentication)
-router.get('/me', (req: Request, res: Response, next: NextFunction) => authMiddleware(req, res, next), 
-  (req: Request, res: Response) => getCurrentUser(req, res));
-router.put('/profile', (req: Request, res: Response, next: NextFunction) => authMiddleware(req, res, next), 
-  (req: Request, res: Response) => updateProfile(req, res));
-router.put('/change-password', (req: Request, res: Response, next: NextFunction) => authMiddleware(req, res, next), 
-  (req: Request, res: Response) => changePassword(req, res));
-router.post('/logout', (req: Request, res: Response, next: NextFunction) => authMiddleware(req, res, next), 
-  (req: Request, res: Response) => logout(req, res));
+router.get('/me', authMiddleware, getCurrentUser);
+router.put('/profile', authMiddleware, updateProfile);
+router.put('/change-password', authMiddleware, changePassword);
+router.post('/logout', authMiddleware, logout);
 
 export default router;

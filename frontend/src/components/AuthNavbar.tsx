@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { auth } from '@/utils/firebase';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { onAuthStateChanged, logoutUser } from '@/utils/localStorage';
 import ThemeToggle from './ThemeToggle';
 import LanguageSelector from './LanguageSelector';
 import { useTranslation } from '@/i18n';
@@ -18,7 +17,7 @@ export default function AuthNavbar() {
   const { t } = useTranslation();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged((currentUser) => {
       setUser(currentUser);
       setLoading(false);
     });
@@ -28,9 +27,7 @@ export default function AuthNavbar() {
 
   const handleLogout = async () => {
     try {
-      await signOut(auth);
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('user_id');
+      await logoutUser();
       window.location.href = '/';
     } catch (error) {
       console.error('Logout error:', error);

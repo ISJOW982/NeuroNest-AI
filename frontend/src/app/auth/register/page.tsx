@@ -3,8 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { auth } from '@/utils/firebase';
+import { registerUser } from '@/utils/localStorage';
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
@@ -33,32 +32,20 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      // Create user with Firebase Authentication
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      
-      // Update user profile with display name
-      await updateProfile(userCredential.user, {
-        displayName: name,
-      });
-      
-      // Get the user's ID token
-      const token = await userCredential.user.getIdToken();
-      
-      // Store the token in localStorage
-      localStorage.setItem('auth_token', token);
-      localStorage.setItem('user_id', userCredential.user.uid);
+      // Register user with local storage
+      const user = await registerUser(email, password, name);
       
       // Redirect to the chat page
       router.push('/chat');
     } catch (error) {
       console.error('Registration error:', error);
       
-      // Handle specific Firebase Auth errors
-      if (error.code === 'auth/email-already-in-use') {
+      // Handle errors
+      if (error.message === 'User already exists') {
         setError('Email is already in use');
-      } else if (error.code === 'auth/invalid-email') {
+      } else if (error.message.includes('email')) {
         setError('Invalid email format');
-      } else if (error.code === 'auth/weak-password') {
+      } else if (error.message.includes('password')) {
         setError('Password is too weak');
       } else {
         setError('Failed to register. Please try again.');
