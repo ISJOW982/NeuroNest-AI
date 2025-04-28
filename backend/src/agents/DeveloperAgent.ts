@@ -1,15 +1,24 @@
 import { BaseAgent } from './BaseAgent';
 import { AgentResponse } from './AgentInterface';
+import langchainUtils from '../utils/langchain';
 
 /**
  * Agent responsible for generating code based on specifications
  */
 export class DeveloperAgent extends BaseAgent {
+  private developerChain;
+  
   constructor() {
     super(
       'Developer Agent',
       'Generates code based on specifications'
     );
+    
+    try {
+      this.developerChain = langchainUtils.createDeveloperAgentChain();
+    } catch (error) {
+      console.error('Error initializing DeveloperAgent chain:', error);
+    }
   }
   
   /**
@@ -21,16 +30,64 @@ export class DeveloperAgent extends BaseAgent {
   async process(message: string, context?: any): Promise<AgentResponse> {
     try {
       const language = context?.language || 'html';
+      const fileType = context?.fileType || this.getFileTypeFromLanguage(language);
       
-      // TODO: Integrate with Gemini API for actual code generation
+      let code: string;
       
-      // For now, return mock code based on the language
-      const code = this.generateMockCode(language, message);
+      // Use LangChain if available, otherwise use mock code
+      if (this.developerChain) {
+        try {
+          code = await this.developerChain.invoke({
+            input: message,
+            language: language,
+            fileType: fileType
+          });
+        } catch (langchainError) {
+          console.error('Error using LangChain:', langchainError);
+          code = this.generateMockCode(language, message);
+        }
+      } else {
+        code = this.generateMockCode(language, message);
+      }
       
       return this.createCodeResponse(code, language);
     } catch (error) {
       console.error('Error in DeveloperAgent:', error);
       return this.createErrorResponse('Failed to generate code');
+    }
+  }
+  
+  /**
+   * Get file type from language
+   * @param language The programming language
+   * @returns The file type
+   */
+  private getFileTypeFromLanguage(language: string): string {
+    switch (language.toLowerCase()) {
+      case 'html':
+        return 'HTML';
+      case 'css':
+        return 'CSS';
+      case 'javascript':
+      case 'js':
+        return 'JavaScript';
+      case 'typescript':
+      case 'ts':
+        return 'TypeScript';
+      case 'python':
+      case 'py':
+        return 'Python';
+      case 'java':
+        return 'Java';
+      case 'c#':
+      case 'csharp':
+        return 'C#';
+      case 'go':
+        return 'Go';
+      case 'rust':
+        return 'Rust';
+      default:
+        return language;
     }
   }
   

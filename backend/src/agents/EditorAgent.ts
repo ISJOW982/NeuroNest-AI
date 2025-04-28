@@ -1,15 +1,24 @@
 import { BaseAgent } from './BaseAgent';
 import { AgentResponse } from './AgentInterface';
+import langchainUtils from '../utils/langchain';
 
 /**
  * Agent responsible for reviewing and improving code
  */
 export class EditorAgent extends BaseAgent {
+  private editorChain;
+  
   constructor() {
     super(
       'Editor Agent',
       'Reviews and improves code and content'
     );
+    
+    try {
+      this.editorChain = langchainUtils.createEditorAgentChain();
+    } catch (error) {
+      console.error('Error initializing EditorAgent chain:', error);
+    }
   }
   
   /**
@@ -23,10 +32,22 @@ export class EditorAgent extends BaseAgent {
       const contentType = context?.type || 'code';
       const language = context?.language;
       
-      // TODO: Integrate with Gemini API for actual content improvement
+      let improvedContent: string;
       
-      // For now, return slightly modified content
-      const improvedContent = this.improveMockContent(content, contentType);
+      // Use LangChain if available, otherwise use mock improvement
+      if (this.editorChain) {
+        try {
+          improvedContent = await this.editorChain.invoke({
+            input: content,
+            contentType: contentType
+          });
+        } catch (langchainError) {
+          console.error('Error using LangChain:', langchainError);
+          improvedContent = this.improveMockContent(content, contentType);
+        }
+      } else {
+        improvedContent = this.improveMockContent(content, contentType);
+      }
       
       if (contentType === 'code' && language) {
         return this.createCodeResponse(improvedContent, language);

@@ -1,15 +1,24 @@
 import { BaseAgent } from './BaseAgent';
 import { AgentResponse } from './AgentInterface';
+import langchainUtils from '../utils/langchain';
 
 /**
  * Agent responsible for analyzing requests and creating execution plans
  */
 export class ThinkingAgent extends BaseAgent {
+  private thinkingChain;
+  
   constructor() {
     super(
       'Thinking Agent',
       'Analyzes requests and creates execution plans'
     );
+    
+    try {
+      this.thinkingChain = langchainUtils.createThinkingAgentChain();
+    } catch (error) {
+      console.error('Error initializing ThinkingAgent chain:', error);
+    }
   }
   
   /**
@@ -20,10 +29,27 @@ export class ThinkingAgent extends BaseAgent {
    */
   async process(message: string, context?: any): Promise<AgentResponse> {
     try {
-      // TODO: Integrate with Gemini API for actual processing
+      let plan: any;
       
-      // For now, return a mock response
-      const plan = this.createMockPlan(message);
+      // Use LangChain if available, otherwise use mock plan
+      if (this.thinkingChain) {
+        try {
+          const result = await this.thinkingChain.invoke({
+            input: message,
+          });
+          
+          // Parse the result as JSON
+          plan = JSON.parse(result);
+          
+          // Add the original request to the plan
+          plan.originalRequest = message;
+        } catch (langchainError) {
+          console.error('Error using LangChain:', langchainError);
+          plan = this.createMockPlan(message);
+        }
+      } else {
+        plan = this.createMockPlan(message);
+      }
       
       return {
         type: 'plan',
