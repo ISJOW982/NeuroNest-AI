@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import express from 'express';
 import { 
   createProject, 
   createFile, 
@@ -7,7 +7,7 @@ import {
   getExecutionLogs 
 } from '../controllers/executionController';
 
-const router = Router();
+const router = express.Router();
 
 // POST /api/execution/projects - Create a new project
 router.post('/projects', createProject);

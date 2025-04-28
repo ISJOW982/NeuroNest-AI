@@ -1,7 +1,7 @@
-import { Router } from 'express';
+import express from 'express';
 import { processMessage, getAgents, getProviders } from '../controllers/agentController';
 
-const router = Router();
+const router = express.Router();
 
 // GET /api/agents - Get information about available agents
 router.get('/', getAgents);

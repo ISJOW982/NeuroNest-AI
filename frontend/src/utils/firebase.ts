@@ -97,6 +97,50 @@ export const getProjects = async (userId: string) => {
   }
 };
 
+export const getProject = async (projectId: string) => {
+  try {
+    const projectRef = doc(db, 'projects', projectId);
+    const projectDoc = await getDoc(projectRef);
+    
+    if (!projectDoc.exists()) {
+      throw new Error('Project not found');
+    }
+    
+    return {
+      id: projectDoc.id,
+      ...projectDoc.data()
+    };
+  } catch (error) {
+    console.error('Error getting project:', error);
+    throw error;
+  }
+};
+
+export const updateProject = async (projectId: string, projectData: any) => {
+  try {
+    const projectRef = doc(db, 'projects', projectId);
+    await updateDoc(projectRef, {
+      ...projectData,
+      updatedAt: new Date()
+    });
+    return projectId;
+  } catch (error) {
+    console.error('Error updating project:', error);
+    throw error;
+  }
+};
+
+export const deleteProject = async (projectId: string) => {
+  try {
+    const projectRef = doc(db, 'projects', projectId);
+    await deleteDoc(projectRef);
+    return true;
+  } catch (error) {
+    console.error('Error deleting project:', error);
+    throw error;
+  }
+};
+
 // User settings functions
 export const saveUserSettings = async (userId: string, settings: any) => {
   try {

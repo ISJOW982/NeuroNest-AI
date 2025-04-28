@@ -4,9 +4,44 @@ import { Server as SocketIOServer } from 'socket.io';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
+import * as admin from 'firebase-admin';
+import path from 'path';
 
 // Load environment variables
 dotenv.config();
+
+// Initialize Firebase Admin SDK
+try {
+  // Check if Firebase credentials are provided
+  if (process.env.FIREBASE_PROJECT_ID) {
+    // If service account key is provided as a JSON string in env var
+    if (process.env.FIREBASE_PRIVATE_KEY) {
+      admin.initializeApp({
+        credential: admin.credential.cert({
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          // Replace escaped newlines in the private key
+          privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        }),
+        databaseURL: process.env.FIREBASE_DATABASE_URL,
+        storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+      });
+    } else {
+      // Try to use default credentials or service account file
+      const serviceAccountPath = path.resolve(__dirname, '../firebase-service-account.json');
+      admin.initializeApp({
+        credential: admin.credential.applicationDefault(),
+        databaseURL: process.env.FIREBASE_DATABASE_URL,
+        storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+      });
+    }
+    console.log('Firebase Admin SDK initialized successfully');
+  } else {
+    console.warn('Firebase credentials not provided. Firebase functionality will be limited.');
+  }
+} catch (error) {
+  console.error('Error initializing Firebase Admin SDK:', error);
+}
 
 // Create Express app
 const app = express();
