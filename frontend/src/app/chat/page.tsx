@@ -155,29 +155,26 @@ export default function ChatPage() {
     setMessages(prev => [...prev, thinkingMessage]);
     
     try {
-      // Call the API to process the message
-      const response = await api.post(api.endpoints.agents.process, {
-        message: input,
-        context: {
-          // Include any additional context here
-          previousMessages: messages.map(msg => ({
-            type: msg.type,
-            content: msg.content
-          })),
-          files: Object.entries(fileContents).map(([name, content]) => ({
-            name,
-            content
-          }))
-        }
+      // Call the API to process the message using the helper function
+      const result = await api.processMessage(input, {
+        // Include any additional context here
+        previousMessages: messages.map(msg => ({
+          type: msg.type,
+          content: msg.content
+        })),
+        files: Object.entries(fileContents).map(([name, content]) => ({
+          name,
+          content
+        }))
       });
       
       // Remove thinking message
       setMessages(prev => prev.filter(msg => msg.id !== thinkingMessage.id));
       
       // Process the responses from the agent system
-      if (response.data && response.data.responses) {
+      if (result && result.responses) {
         // Add each response to the messages
-        for (const agentResponse of response.data.responses) {
+        for (const agentResponse of result.responses) {
           const newMessage: Message = {
             id: `${agentResponse.type}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
             type: agentResponse.type as MessageType,

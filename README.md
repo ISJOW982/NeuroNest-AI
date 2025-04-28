@@ -11,10 +11,20 @@ NeuroNest-AI aims to be a comprehensive platform where users can input their ide
 ### Current Features
 - Interactive chat interface
 - Multi-modal input (text, voice, files)
-- Specialized AI agents:
+- Specialized AI agents powered by LangChain.js:
   - Thinking Agent: Analyzes requests and creates plans
   - Developer Agent: Converts ideas into code (frontend focus)
   - Editor Agent: Reviews and improves outputs
+  - Orchestrator Agent: Coordinates between specialized agents
+- Advanced document processing (PDF, text files)
+- Firebase integration for cloud storage:
+  - User settings
+  - Project history
+  - Conversation history
+- Multiple AI provider support:
+  - Google Gemini
+  - OpenAI
+- User API key management
 - Code generation and preview
 - Project export capabilities
 
@@ -23,8 +33,6 @@ NeuroNest-AI aims to be a comprehensive platform where users can input their ide
 - Multi-language support (Python, Java, Kotlin, Swift, etc.)
 - Automatic dependency management
 - Live execution environment
-- Advanced agent orchestration
-- Cloud storage integration
 - Custom agent creation
 
 ## Getting Started
@@ -58,12 +66,24 @@ npm install
 
 4. Set up environment variables
 ```bash
+# Backend environment variables
 cd ../backend
 cp .env.example .env
 # Edit .env with your API keys and configuration
+
+# Frontend environment variables
+cd ../frontend
+cp .env.example .env
+# Edit .env with your Firebase configuration
 ```
 
-5. Start the development servers
+5. Set up Firebase
+   - Create a new Firebase project at https://console.firebase.google.com/
+   - Enable Authentication, Firestore, and Storage
+   - Create a web app and copy the configuration to your frontend .env file
+   - Generate a service account key for the backend and save it securely
+
+6. Start the development servers
 ```bash
 # Option A: Using the start script
 cd ..
@@ -90,9 +110,15 @@ cd NeuroNest-AI
 
 2. Set up environment variables
 ```bash
+# Backend environment variables
 cd backend
 cp .env.example .env
 # Edit .env with your API keys and configuration
+
+# Frontend environment variables
+cd ../frontend
+cp .env.example .env
+# Edit .env with your Firebase configuration
 ```
 
 3. Start the application with Docker Compose
@@ -100,6 +126,20 @@ cp .env.example .env
 cd ..
 docker-compose up
 ```
+
+### API Keys Setup
+
+NeuroNest-AI supports multiple AI providers. You can configure your API keys in the settings page or in the environment variables:
+
+1. **Google Gemini API Key**
+   - Get your API key from [Google AI Studio](https://ai.google.dev/)
+   - Add it to your backend .env file as `GEMINI_API_KEY=your_key_here`
+   - Or enter it in the settings page
+
+2. **OpenAI API Key**
+   - Get your API key from [OpenAI Dashboard](https://platform.openai.com/api-keys)
+   - Add it to your backend .env file as `OPENAI_API_KEY=your_key_here`
+   - Or enter it in the settings page
 
 ### Accessing the Application
 
